@@ -11,6 +11,10 @@ st.set_page_config(page_title="App Calificaciones", page_icon="📚", layout="wi
 try:
     # Cargar la llave desde la bóveda secreta de Streamlit
     creds_dict = json.loads(st.secrets["google_creds"])
+    
+    # IMPORTANTE: Reparar los saltos de línea de la llave privada
+    creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n")
+    
     creds = Credentials.from_service_account_info(
         creds_dict,
         scopes=["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
