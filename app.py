@@ -1,16 +1,20 @@
 import streamlit as st
 import pandas as pd
 import gspread
-from oauth2client.service_account import ServiceAccountCredentials
+import json
+from google.oauth2.service_account import Credentials
 
 # --- 1. CONFIGURACIÓN DE PÁGINA ---
 st.set_page_config(page_title="App Calificaciones", page_icon="📚", layout="wide")
 
-# --- 2. CONEXIÓN A GOOGLE SHEETS ---
-# Esto usa tu archivo credenciales.json para entrar a tu Drive
-scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+# --- 2. CONEXIÓN A GOOGLE SHEETS (USANDO LA BÓVEDA SECRETA) ---
 try:
-    creds = ServiceAccountCredentials.from_json_keyfile_name("credenciales.json", scope)
+    # Cargar la llave desde la bóveda secreta de Streamlit
+    creds_dict = json.loads(st.secrets["google_creds"])
+    creds = Credentials.from_service_account_info(
+        creds_dict,
+        scopes=["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
+    )
     cliente = gspread.authorize(creds)
     # IMPORTANTE: El nombre aquí debe ser EXACTAMENTE el de tu archivo de Google Sheets
     hoja = cliente.open("Base_Datos_Calificaciones_Panuco").sheet1 
@@ -43,7 +47,7 @@ if not st.session_state["autenticado"]:
 st.title("📚 Sistema de Calificaciones - ITS Pánuco")
 
 if not conexion_exitosa:
-    st.error(f"⚠️ Error al conectar con Google Sheets. Verifica que el archivo credenciales.json esté en la carpeta y que compartiste el Excel con el correo del bot. Error técnico: {error_msg}")
+    st.error(f"⚠️ Error al conectar con Google Sheets. Verifica que hayas guardado bien el secreto en Streamlit. Error técnico: {error_msg}")
     st.stop()
 
 # Pestañas
